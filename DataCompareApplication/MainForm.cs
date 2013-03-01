@@ -483,9 +483,17 @@ namespace WindowsFormsApplication1
                     oper[6].Enabled = true;
                     oper[7].Enabled = true;
                     oper[8].Enabled = true;
+                    compControls[1].Enabled = false;
+                    compControls[2].Enabled = false;
                     break;
                 case 5:
                     oper[1].Enabled = true;
+                    srcControls[6].Enabled = false;
+                    srcControls[7].Enabled = false;
+                    srcControls[8].Enabled = false;
+                    trgControls[6].Enabled = false;
+                    trgControls[7].Enabled = false;
+                    trgControls[8].Enabled = false;
                     break;
                 case 6:
                     oper[2].Enabled = true;
@@ -653,26 +661,41 @@ namespace WindowsFormsApplication1
 
         private void bt_EditMapping_Click(object sender, EventArgs e)
         {
-            dgv_Mappings.Rows.Clear();
+            if (bt_EditMapping.Text == "Edit Mapping")
+            {
+                dgv_Mappings.Rows.Clear();
+
+                string sqlSrc = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND c.id = OBJECT_ID('" + cb_SrcTab.SelectedValue + "')";
+                string sqlTrg = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND c.id = OBJECT_ID('" + cb_TrgTab.SelectedValue + "')";
+
+                DataSet ds = new DataSet();
+
+                ExecuteSQL(sqlSrc, ConnType.Source, ds, "SrcCols");
+                ExecuteSQL(sqlTrg, ConnType.Target, ds, "TrgCols");
+
+                ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DataSource = ds.Tables["TrgCols"];
+                ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DisplayMember = "name";
+                ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).ValueMember = "name";
+
+                MappingColumns(ds, "SrcCols", "TrgCols");
+
+
+                dgv_Mappings.Refresh();
+
+                SetLayout(ConnType.Other, 5);
+
+                bt_EditMapping.Text = "Update Source/Target";
+            }
+            else
+            {
+                dgv_Mappings.Rows.Clear();
+                if (dataGridView1.Rows.Count > 0)
+                    dataGridView1.Rows.Clear();
+                SetLayout(ConnType.Source, 2);
+                SetLayout(ConnType.Target, 2);
+                bt_EditMapping.Text = "Edit Mapping";
+            }
             
-            string sqlSrc = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND c.id = OBJECT_ID('" + cb_SrcTab.SelectedValue + "')";
-            string sqlTrg = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND c.id = OBJECT_ID('" + cb_TrgTab.SelectedValue + "')";
-
-            DataSet ds = new DataSet();
-
-            ExecuteSQL(sqlSrc, ConnType.Source, ds, "SrcCols");
-            ExecuteSQL(sqlTrg, ConnType.Target, ds, "TrgCols");
-
-            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DataSource = ds.Tables["TrgCols"];
-            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DisplayMember = "name";
-            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).ValueMember = "name";
-
-            MappingColumns(ds, "SrcCols", "TrgCols");
-            
-
-            dgv_Mappings.Refresh();
-
-            SetLayout(ConnType.Other, 5);
         }
 
         private void bt_Compare_Click(object sender, EventArgs e)
@@ -699,8 +722,19 @@ namespace WindowsFormsApplication1
 
             BuildSql(ref sqlSource, ref sqlTarget, ref keyIndex, ref sqlColSource, ref sqlColTarget);
 
-            int srcRowCount = getSrcRowCount();
-            int trgRowCount = getTrgRowCount();
+            int srcRowCount = 0;
+            int trgRowCount = 0;
+
+            try
+            {
+                srcRowCount = getSrcRowCount();
+                trgRowCount = getTrgRowCount();
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);              
+                return;
+            }
 
             DataTable dtSource = ExecuteSQL(sqlColSource, ConnType.Source);
             DataTable dtTarget = ExecuteSQL(sqlColTarget, ConnType.Target);
