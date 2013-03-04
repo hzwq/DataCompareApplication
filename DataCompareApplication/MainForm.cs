@@ -23,8 +23,12 @@ namespace WindowsFormsApplication1
     {
 
         #region Global
+        const string CONN_STRING_SSPI = @"server={0};Integrated Security=SSPI";
+        const string CONN_STRING = @"server={0};user id={1};pwd={2}";
+        const string CONN_DB = ";database={0}";
         const string RETRIEVE_TABLES_SQL = "SELECT u.name + '.' + o.name as Name FROM SysObjects o, SysUsers u Where o.uid = u.uid AND o.XType IN ('U','V') ORDER BY o.XType,o.Name";
         const string RETRIEVE_DATABASES_SQL = "SELECT Name FROM Master..SysDatabases ORDER BY Name";
+        const string RETRIEVE_COLUMNS_SQL = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name, c.name AS Col FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND t.status = 0  AND c.id = OBJECT_ID('{0}')";
         const string SRC_DBLIST_TABLE = "SrcDBList";
         const string TRG_DBLIST_TABLE = "TrgDBList";
         const string SRC_TABLIST_TABLE = "SrcTabList";
@@ -78,8 +82,22 @@ namespace WindowsFormsApplication1
             if (sql == null || sql.Length == 0 || connections[(int)connType] == null || connections[(int)connType].State != ConnectionState.Open || ds == null || tabname == null || tabname.Length == 0)
                 return;
 
+
             if (ds.Tables.Contains(tabname))
+            {
+                DataRelation dr;
+                for(int i = 0; i < ds.Relations.Count;)
+                {
+                    dr = ds.Relations[i];
+                    if (tabname.Equals(dr.ParentTable.TableName) || tabname.Equals(dr.ChildTable.TableName))
+                    {
+                        ds.Relations.Remove(dr);
+                        continue;
+                    }
+                    i++;
+                }
                 ds.Tables.Remove(tabname);
+            }
 
             SqlDataAdapter daSource = GetDataAdapter(sql, connType);
             daSource.Fill(ds, tabname);
@@ -126,10 +144,18 @@ namespace WindowsFormsApplication1
 
         private string BuildConnectionString(string server, bool isWinAuth, string username, string password, string database)
         {
-            string connStrServer = @"server=" + server.Trim();
-            string connStrAuth = (isWinAuth) ? ";Integrated Security=SSPI;" : ";user id=" + username.Trim() + ";pwd=" + password.Trim();
-            string connStrDB = (database == null) ? "" : ";database=" + database;
-            return connStrServer + connStrAuth + connStrDB;
+            string connStr = "";
+
+            if (isWinAuth)
+            {
+                connStr = String.Format(CONN_STRING_SSPI, server.Trim());
+            }
+            else
+            {
+                connStr = String.Format(CONN_STRING, server.Trim(), username.Trim(), password.Trim());
+            }
+
+            return connStr + ((database == null) ? "" : String.Format(CONN_DB, database.Trim()));
         }
 
         private void CloseConnections()
@@ -212,35 +238,43 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void MappingColumns(DataSet ds, string src, string trg)
+        private void MappingColumns()
         {
+            DataTable dtSrc = dsGlobal.Tables["SrcCols"];
+            DataTable dtTrg = dsGlobal.Tables["TrgCols"];
+
             DataTable mapping = new DataTable("Mapping");
             mapping.Columns.Add("Selected", System.Type.GetType("System.Boolean"));
-            mapping.Columns.Add("SourceColumns", ds.Tables[src].Columns["name"].DataType);
-            mapping.Columns.Add("TargetColumns", ds.Tables[trg].Columns["name"].DataType);
+            mapping.Columns.Add("SourceColumns", System.Type.GetType("System.String"));
+            mapping.Columns.Add("TargetColumns", System.Type.GetType("System.String"));
             mapping.Columns.Add("Keys", System.Type.GetType("System.Boolean"));
-            ds.Tables.Add(mapping);
-            DataRelation dr = new DataRelation("ColumnName", ds.Tables[src].Columns["name"], ds.Tables[trg].Columns["name"], false);
-            ds.Relations.Add(dr);
+            mapping.Columns.Add("SourceColumnName", System.Type.GetType("System.String"));
+
+            if (dsGlobal.Tables.Contains("Mapping"))
+                dsGlobal.Tables.Remove("Mapping");
+            dsGlobal.Tables.Add(mapping);
+            DataRelation dr = new DataRelation("ColumnName", dtSrc.Columns["col"], dtTrg.Columns["col"], false);
+            dsGlobal.Relations.Add(dr);
 
             mapping.BeginLoadData();
-            foreach (DataRow row in ds.Tables[src].Rows)
+            foreach (DataRow row in dtSrc.Rows)
             {
                 DataRow newRow = mapping.NewRow();
                 newRow[0] = false;
                 newRow[1] = row["name"];
                 newRow[3] = false;
+                newRow[4] = row["col"];
 
                 foreach (DataRow childRow in row.GetChildRows(dr))
                 {
                     if (childRow != null)
                     {
-                        newRow[2] = childRow["name"];
+                        newRow[2] = childRow["col"];
                         newRow[0] = true;
                     }
                 }
                 mapping.Rows.Add(newRow);
-                dgv_Mappings.Rows.Add(newRow[0], newRow[1], newRow[2], newRow[3]);
+                dgv_Mappings.Rows.Add(newRow[0], newRow[1], newRow[2], newRow[3], newRow[4]);
             }
 
             mapping.EndLoadData();
@@ -255,49 +289,53 @@ namespace WindowsFormsApplication1
             if (drRight == null)
                 return -1;
 
+            int compare = 0;
+
             foreach (int i in keyIndex)
             {
-                if (string.Compare(drLeft[i].ToString(), drRight[i].ToString()) == 0)
-                    continue;
-                else
-                    return string.Compare(drLeft[i].ToString(), drRight[i].ToString());
+                compare = string.Compare(drLeft[i].ToString(), drRight[i].ToString());
+                if (compare != 0)
+                    break;
             }
-            return 0;
+
+            return compare;
         }
 
         private void BuildSql(ref string sqlSrc, ref string sqlTrg, ref int[] keyIndex, ref string sqlColSrc, ref string sqlColTrg)
         {
             List<int> lstKeysIndex = new List<int>();
-            sqlSrc = "";
-            sqlTrg = "";
-            sqlSrc += "SELECT ";
-            sqlTrg += "SELECT ";
+            sqlSrc = "SELECT ";
+            sqlTrg = "SELECT ";
             string sqlSrcOrder = " ORDER BY ";
             string sqlTrgOrder = " ORDER BY ";
             string srcCol = "";
             string trgCol = "";
 
-            int selectIndex = 0;
+            int selectedCount = 0;
 
             foreach (DataGridViewRow row in dgv_Mappings.Rows)
             {
                 if ((bool)row.Cells[0].Value != true)
                     continue;
 
-                srcCol = ((string)row.Cells[1].Value).Split('[')[0].Trim();
-                trgCol = ((string)row.Cells[2].Value).Split('[')[0].Trim();
+                //Get selected source column name and target column name.
+                srcCol = ((string)row.Cells[4].Value).Trim();
+                trgCol = ((string)row.Cells[2].Value).Trim();
+
+                //Prepare for the select SQL.
                 sqlSrc += srcCol + ", ";
                 sqlTrg += trgCol + ", ";
 
+                //Prepare for the order by SQL.
                 if ((bool)row.Cells[3].Value == true)
                 {
-                    lstKeysIndex.Add(selectIndex);
+                    lstKeysIndex.Add(selectedCount);
                     sqlSrcOrder += srcCol + ", ";
                     sqlTrgOrder += trgCol + ", ";
                 }
-                selectIndex++;
-
+                selectedCount++;
             }
+
             sqlSrc = sqlSrc.Remove(sqlSrc.Length - 2);
             sqlTrg = sqlTrg.Remove(sqlTrg.Length - 2);
             sqlSrcOrder = sqlSrcOrder.Remove(sqlSrcOrder.Length - 2);
@@ -349,7 +387,7 @@ namespace WindowsFormsApplication1
             columnCount = 0;
             diffColIndex = null;
             allDiff = false;
-            dsGlobal.Tables.Clear();
+            //dsGlobal.Tables.Clear();
             cb_DiffCols.Checked = false;
         }
 
@@ -425,7 +463,6 @@ namespace WindowsFormsApplication1
             trgControls.Add(bt_TrgRfst);
             trgControls.Add(tb_TrgFilter);
 
-            compControls.Add(bt_EditMapping);
             compControls.Add(bt_Compare);
             compControls.Add(cb_DiffCols);
         }
@@ -461,6 +498,8 @@ namespace WindowsFormsApplication1
                     oper[6].Enabled = false;
                     oper[7].Enabled = false;
                     oper[8].Enabled = false;
+                    compControls[0].Enabled = false;
+                    compControls[1].Enabled = false;
                     break;
                 case 1:
                     oper[0].Enabled = false;
@@ -472,6 +511,8 @@ namespace WindowsFormsApplication1
                     oper[6].Enabled = false;
                     oper[7].Enabled = true;
                     oper[8].Enabled = false;
+                    compControls[0].Enabled = false;
+                    compControls[1].Enabled = false;
                     break;
                 case 2:
                     oper[0].Enabled = false;
@@ -483,20 +524,20 @@ namespace WindowsFormsApplication1
                     oper[6].Enabled = true;
                     oper[7].Enabled = true;
                     oper[8].Enabled = true;
+                    compControls[0].Enabled = false;
                     compControls[1].Enabled = false;
-                    compControls[2].Enabled = false;
                     break;
                 case 5:
-                    oper[1].Enabled = true;
-                    srcControls[6].Enabled = false;
-                    srcControls[7].Enabled = false;
-                    srcControls[8].Enabled = false;
-                    trgControls[6].Enabled = false;
-                    trgControls[7].Enabled = false;
-                    trgControls[8].Enabled = false;
+                    oper[0].Enabled = true;
+                    //srcControls[6].Enabled = false;
+                    //srcControls[7].Enabled = false;
+                    //srcControls[8].Enabled = false;
+                    //trgControls[6].Enabled = false;
+                    //trgControls[7].Enabled = false;
+                    //trgControls[8].Enabled = false;
                     break;
                 case 6:
-                    oper[2].Enabled = true;
+                    oper[1].Enabled = true;
                     break;
                 default:
                     break;
@@ -615,14 +656,14 @@ namespace WindowsFormsApplication1
                     string connStr = BuildConnectionString(tb_SrcServer.Text, cb_SrcWinAuth.Checked, tb_SrcUname.Text, tb_SrcPwd.Text, (string)cb_SrcDB.SelectedValue);
                     NewConnection(ConnType.Source, connStr);
 
+                    SetLayout(ConnType.Source, 2);
+
                     BindDataSource(cb_SrcTab, ConnType.Source, TABLE);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
-                SetLayout(ConnType.Source, 2);
 
             }
             else
@@ -642,6 +683,8 @@ namespace WindowsFormsApplication1
                     string connStr = BuildConnectionString(tb_TrgServer.Text, cb_TrgWinAuth.Checked, tb_TrgUname.Text, tb_TrgPwd.Text, (string)cb_TrgDB.SelectedValue);
                     NewConnection(ConnType.Target, connStr);
 
+                    SetLayout(ConnType.Target, 2);
+
                     BindDataSource(cb_TrgTab, ConnType.Target, TABLE);
 
                 }
@@ -650,52 +693,13 @@ namespace WindowsFormsApplication1
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
-                SetLayout(ConnType.Target, 2);
+                
             }
             else
             {
                 cb_TrgTab.DataSource = null;
                 SetLayout(ConnType.Target, 1);
             }
-        }      
-
-        private void bt_EditMapping_Click(object sender, EventArgs e)
-        {
-            if (bt_EditMapping.Text == "Edit Mapping")
-            {
-                dgv_Mappings.Rows.Clear();
-
-                string sqlSrc = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND c.id = OBJECT_ID('" + cb_SrcTab.SelectedValue + "')";
-                string sqlTrg = "SELECT c.name + ' [' + t.name + '(' + cast(c.length as varchar) + ')]' AS Name FROM SysColumns c, SysTypes t  WHERE c.xtype = t.xtype AND c.id = OBJECT_ID('" + cb_TrgTab.SelectedValue + "')";
-
-                DataSet ds = new DataSet();
-
-                ExecuteSQL(sqlSrc, ConnType.Source, ds, "SrcCols");
-                ExecuteSQL(sqlTrg, ConnType.Target, ds, "TrgCols");
-
-                ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DataSource = ds.Tables["TrgCols"];
-                ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DisplayMember = "name";
-                ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).ValueMember = "name";
-
-                MappingColumns(ds, "SrcCols", "TrgCols");
-
-
-                dgv_Mappings.Refresh();
-
-                SetLayout(ConnType.Other, 5);
-
-                bt_EditMapping.Text = "Update Source/Target";
-            }
-            else
-            {
-                dgv_Mappings.Rows.Clear();
-                if (dataGridView1.Rows.Count > 0)
-                    dataGridView1.Rows.Clear();
-                SetLayout(ConnType.Source, 2);
-                SetLayout(ConnType.Target, 2);
-                bt_EditMapping.Text = "Edit Mapping";
-            }
-            
         }
 
         private void bt_Compare_Click(object sender, EventArgs e)
@@ -908,12 +912,50 @@ namespace WindowsFormsApplication1
 
         private void MainForm_Resize(object sender, EventArgs e)
         {
-            dgv_Mappings.Width = this.Width - 417;
+            dgv_Mappings.Width = this.Width - 351;
             dataGridView1.Width = this.Width - 59;
             dataGridView1.Height = this.Height - 333;
         }
 
         #endregion
+
+        private void cb_SrcTab_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (trgStatus == 2 && srcStatus == 2)
+            {
+                DoColumnsMapping();
+            }
+        }
+
+        private void cb_TrgTab_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (srcStatus == 2 && trgStatus == 2)
+            {
+                DoColumnsMapping();
+            }
+        }
+
+        private void DoColumnsMapping()
+        {
+            dgv_Mappings.Rows.Clear();
+
+            string sqlSrc = String.Format(RETRIEVE_COLUMNS_SQL, cb_SrcTab.SelectedValue);
+            string sqlTrg = String.Format(RETRIEVE_COLUMNS_SQL, cb_TrgTab.SelectedValue);
+
+            DataSet ds = new DataSet();
+
+            ExecuteSQL(sqlSrc, ConnType.Source, dsGlobal, "SrcCols");
+            ExecuteSQL(sqlTrg, ConnType.Target, dsGlobal, "TrgCols");
+
+            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DataSource = dsGlobal.Tables["TrgCols"];
+            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DisplayMember = "name";
+            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).ValueMember = "col";
+
+            MappingColumns();
+
+            SetLayout(ConnType.Other, 5);
+
+        }
         
     }
 }
