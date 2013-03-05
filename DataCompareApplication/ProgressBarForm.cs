@@ -36,7 +36,7 @@ namespace WindowsFormsApplication1
             if (value <= pb_Processed.Maximum)
             {
                 pb_Processed.Value = value;
-                lb_Percentage.Text = (value * 100 / pb_Processed.Maximum).ToString() + "%";
+                lb_Percentage.Text = pb_Processed.Maximum == 0 ? "100%" : (value * 100 / pb_Processed.Maximum).ToString() + "%";
                 lb_Count.Text = value.ToString() + "/" + pb_Processed.Maximum.ToString();
             }
 
@@ -54,7 +54,7 @@ namespace WindowsFormsApplication1
             if (value <= pb_ProcessedTrg.Maximum)
             {
                 pb_ProcessedTrg.Value = value;
-                lb_PercentageTrg.Text = (value * 100 / pb_ProcessedTrg.Maximum).ToString() + "%";
+                lb_PercentageTrg.Text = pb_ProcessedTrg.Maximum == 0 ? "100%" : (value * 100 / pb_ProcessedTrg.Maximum).ToString() + "%";
                 lb_CountTrg.Text = value.ToString() + "/" + pb_ProcessedTrg.Maximum.ToString();
             }
 

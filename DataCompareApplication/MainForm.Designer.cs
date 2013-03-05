@@ -43,6 +43,11 @@
             this.tb_TrgUname = new System.Windows.Forms.TextBox();
             this.tb_TrgPwd = new System.Windows.Forms.TextBox();
             this.dgv_Mappings = new System.Windows.Forms.DataGridView();
+            this.Selected = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.SourceColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TargetColumn = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.SelectedKey = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.SourceColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.bt_Compare = new System.Windows.Forms.Button();
             this.cb_DiffCols = new System.Windows.Forms.CheckBox();
             this.tb_SrcPwd = new System.Windows.Forms.TextBox();
@@ -65,11 +70,6 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tb_TrgFilter = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.Selected = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.SourceColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.TargetColumn = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.SelectedKey = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.SourceColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv_Mappings)).BeginInit();
             this.tb_Conn.SuspendLayout();
@@ -82,29 +82,29 @@
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Location = new System.Drawing.Point(20, 270);
+            this.dataGridView1.Location = new System.Drawing.Point(20, 293);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowTemplate.Height = 23;
-            this.dataGridView1.Size = new System.Drawing.Size(841, 246);
+            this.dataGridView1.Size = new System.Drawing.Size(841, 267);
             this.dataGridView1.TabIndex = 0;
             this.dataGridView1.VirtualMode = true;
             // 
             // bt_TrgRfst
             // 
             this.bt_TrgRfst.Enabled = false;
-            this.bt_TrgRfst.Location = new System.Drawing.Point(233, 137);
+            this.bt_TrgRfst.Location = new System.Drawing.Point(233, 148);
             this.bt_TrgRfst.Name = "bt_TrgRfst";
-            this.bt_TrgRfst.Size = new System.Drawing.Size(19, 21);
+            this.bt_TrgRfst.Size = new System.Drawing.Size(19, 23);
             this.bt_TrgRfst.TabIndex = 17;
             this.bt_TrgRfst.UseVisualStyleBackColor = true;
             this.bt_TrgRfst.Click += new System.EventHandler(this.bt_TrgRfst_Click);
             // 
             // bt_TrgRfs
             // 
-            this.bt_TrgRfs.Location = new System.Drawing.Point(233, 112);
+            this.bt_TrgRfs.Location = new System.Drawing.Point(233, 121);
             this.bt_TrgRfs.Name = "bt_TrgRfs";
-            this.bt_TrgRfs.Size = new System.Drawing.Size(19, 21);
+            this.bt_TrgRfs.Size = new System.Drawing.Size(19, 23);
             this.bt_TrgRfs.TabIndex = 17;
             this.bt_TrgRfs.UseVisualStyleBackColor = true;
             this.bt_TrgRfs.Click += new System.EventHandler(this.bt_TrgRfs_Click);
@@ -113,17 +113,17 @@
             // 
             this.cb_TrgDB.Enabled = false;
             this.cb_TrgDB.FormattingEnabled = true;
-            this.cb_TrgDB.Location = new System.Drawing.Point(85, 112);
+            this.cb_TrgDB.Location = new System.Drawing.Point(85, 121);
             this.cb_TrgDB.Name = "cb_TrgDB";
-            this.cb_TrgDB.Size = new System.Drawing.Size(142, 20);
+            this.cb_TrgDB.Size = new System.Drawing.Size(142, 21);
             this.cb_TrgDB.TabIndex = 15;
             // 
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(16, 112);
+            this.label12.Location = new System.Drawing.Point(16, 121);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(53, 12);
+            this.label12.Size = new System.Drawing.Size(53, 13);
             this.label12.TabIndex = 14;
             this.label12.Text = "Database";
             // 
@@ -131,9 +131,9 @@
             // 
             this.cb_TrgTab.Enabled = false;
             this.cb_TrgTab.FormattingEnabled = true;
-            this.cb_TrgTab.Location = new System.Drawing.Point(85, 137);
+            this.cb_TrgTab.Location = new System.Drawing.Point(85, 148);
             this.cb_TrgTab.Name = "cb_TrgTab";
-            this.cb_TrgTab.Size = new System.Drawing.Size(142, 20);
+            this.cb_TrgTab.Size = new System.Drawing.Size(142, 21);
             this.cb_TrgTab.TabIndex = 12;
             this.cb_TrgTab.DropDown += new System.EventHandler(this.cb_TrgTab_DropDown);
             this.cb_TrgTab.SelectedIndexChanged += new System.EventHandler(this.cb_TrgTab_SelectedIndexChanged);
@@ -141,11 +141,9 @@
             // cb_TrgWinAuth
             // 
             this.cb_TrgWinAuth.AutoSize = true;
-            this.cb_TrgWinAuth.Checked = true;
-            this.cb_TrgWinAuth.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cb_TrgWinAuth.Location = new System.Drawing.Point(85, 42);
+            this.cb_TrgWinAuth.Location = new System.Drawing.Point(85, 46);
             this.cb_TrgWinAuth.Name = "cb_TrgWinAuth";
-            this.cb_TrgWinAuth.Size = new System.Drawing.Size(156, 16);
+            this.cb_TrgWinAuth.Size = new System.Drawing.Size(141, 17);
             this.cb_TrgWinAuth.TabIndex = 10;
             this.cb_TrgWinAuth.Text = "Windows Authentication";
             this.cb_TrgWinAuth.UseVisualStyleBackColor = true;
@@ -154,61 +152,63 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(16, 137);
+            this.label7.Location = new System.Drawing.Point(16, 148);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(65, 12);
+            this.label7.Size = new System.Drawing.Size(62, 13);
             this.label7.TabIndex = 9;
             this.label7.Text = "Table/View";
             // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(16, 88);
+            this.label8.Location = new System.Drawing.Point(16, 95);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(53, 12);
+            this.label8.Size = new System.Drawing.Size(53, 13);
             this.label8.TabIndex = 8;
             this.label8.Text = "Password";
             // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(16, 64);
+            this.label9.Location = new System.Drawing.Point(16, 69);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(29, 12);
+            this.label9.Size = new System.Drawing.Size(29, 13);
             this.label9.TabIndex = 7;
             this.label9.Text = "User";
             // 
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(16, 18);
+            this.label10.Location = new System.Drawing.Point(16, 20);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(41, 12);
+            this.label10.Size = new System.Drawing.Size(38, 13);
             this.label10.TabIndex = 6;
             this.label10.Text = "Server";
             // 
             // tb_TrgServer
             // 
-            this.tb_TrgServer.Location = new System.Drawing.Point(85, 18);
+            this.tb_TrgServer.Location = new System.Drawing.Point(85, 20);
             this.tb_TrgServer.Name = "tb_TrgServer";
-            this.tb_TrgServer.Size = new System.Drawing.Size(167, 21);
+            this.tb_TrgServer.Size = new System.Drawing.Size(167, 20);
             this.tb_TrgServer.TabIndex = 2;
-            this.tb_TrgServer.Text = "localhost\\MCSQL";
+            this.tb_TrgServer.Text = "192.168.81.130";
             // 
             // tb_TrgUname
             // 
-            this.tb_TrgUname.Location = new System.Drawing.Point(85, 64);
+            this.tb_TrgUname.Location = new System.Drawing.Point(85, 69);
             this.tb_TrgUname.Name = "tb_TrgUname";
-            this.tb_TrgUname.Size = new System.Drawing.Size(167, 21);
+            this.tb_TrgUname.Size = new System.Drawing.Size(167, 20);
             this.tb_TrgUname.TabIndex = 3;
+            this.tb_TrgUname.Text = "sa";
             // 
             // tb_TrgPwd
             // 
-            this.tb_TrgPwd.Location = new System.Drawing.Point(85, 88);
+            this.tb_TrgPwd.Location = new System.Drawing.Point(85, 95);
             this.tb_TrgPwd.Name = "tb_TrgPwd";
             this.tb_TrgPwd.PasswordChar = 'X';
-            this.tb_TrgPwd.Size = new System.Drawing.Size(167, 21);
+            this.tb_TrgPwd.Size = new System.Drawing.Size(167, 20);
             this.tb_TrgPwd.TabIndex = 4;
+            this.tb_TrgPwd.Text = "abc123";
             // 
             // dgv_Mappings
             // 
@@ -224,20 +224,59 @@
             this.TargetColumn,
             this.SelectedKey,
             this.SourceColumnName});
-            this.dgv_Mappings.Location = new System.Drawing.Point(314, 6);
+            this.dgv_Mappings.Location = new System.Drawing.Point(314, 7);
             this.dgv_Mappings.Name = "dgv_Mappings";
             this.dgv_Mappings.RowHeadersVisible = false;
             this.dgv_Mappings.RowHeadersWidth = 4;
             this.dgv_Mappings.RowTemplate.Height = 23;
-            this.dgv_Mappings.Size = new System.Drawing.Size(547, 224);
+            this.dgv_Mappings.Size = new System.Drawing.Size(547, 243);
             this.dgv_Mappings.TabIndex = 8;
+            // 
+            // Selected
+            // 
+            this.Selected.DataPropertyName = "Selected";
+            this.Selected.HeaderText = "Selected";
+            this.Selected.Name = "Selected";
+            this.Selected.Width = 55;
+            // 
+            // SourceColumn
+            // 
+            this.SourceColumn.DataPropertyName = "SourceColumn";
+            this.SourceColumn.HeaderText = "SourceColumn";
+            this.SourceColumn.Name = "SourceColumn";
+            this.SourceColumn.ReadOnly = true;
+            this.SourceColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.SourceColumn.Width = 82;
+            // 
+            // TargetColumn
+            // 
+            this.TargetColumn.DataPropertyName = "TargetColumn";
+            this.TargetColumn.HeaderText = "TargetColumn";
+            this.TargetColumn.Name = "TargetColumn";
+            this.TargetColumn.Width = 79;
+            // 
+            // SelectedKey
+            // 
+            this.SelectedKey.DataPropertyName = "Key";
+            this.SelectedKey.HeaderText = "Is Key?";
+            this.SelectedKey.Name = "SelectedKey";
+            this.SelectedKey.Width = 48;
+            // 
+            // SourceColumnName
+            // 
+            this.SourceColumnName.HeaderText = "SourceColumnName";
+            this.SourceColumnName.Name = "SourceColumnName";
+            this.SourceColumnName.ReadOnly = true;
+            this.SourceColumnName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.SourceColumnName.Visible = false;
+            this.SourceColumnName.Width = 107;
             // 
             // bt_Compare
             // 
             this.bt_Compare.Enabled = false;
-            this.bt_Compare.Location = new System.Drawing.Point(20, 235);
+            this.bt_Compare.Location = new System.Drawing.Point(20, 255);
             this.bt_Compare.Name = "bt_Compare";
-            this.bt_Compare.Size = new System.Drawing.Size(109, 29);
+            this.bt_Compare.Size = new System.Drawing.Size(109, 31);
             this.bt_Compare.TabIndex = 11;
             this.bt_Compare.Text = "Compare";
             this.bt_Compare.UseVisualStyleBackColor = true;
@@ -247,9 +286,9 @@
             // 
             this.cb_DiffCols.AutoSize = true;
             this.cb_DiffCols.Enabled = false;
-            this.cb_DiffCols.Location = new System.Drawing.Point(160, 244);
+            this.cb_DiffCols.Location = new System.Drawing.Point(160, 264);
             this.cb_DiffCols.Name = "cb_DiffCols";
-            this.cb_DiffCols.Size = new System.Drawing.Size(156, 16);
+            this.cb_DiffCols.Size = new System.Drawing.Size(139, 17);
             this.cb_DiffCols.TabIndex = 12;
             this.cb_DiffCols.Text = "Show Diff Columns Only";
             this.cb_DiffCols.UseVisualStyleBackColor = true;
@@ -257,72 +296,72 @@
             // 
             // tb_SrcPwd
             // 
-            this.tb_SrcPwd.Location = new System.Drawing.Point(85, 88);
+            this.tb_SrcPwd.Location = new System.Drawing.Point(85, 95);
             this.tb_SrcPwd.Name = "tb_SrcPwd";
             this.tb_SrcPwd.PasswordChar = 'X';
             this.tb_SrcPwd.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.tb_SrcPwd.Size = new System.Drawing.Size(167, 21);
+            this.tb_SrcPwd.Size = new System.Drawing.Size(167, 20);
             this.tb_SrcPwd.TabIndex = 4;
+            this.tb_SrcPwd.Text = "abc123";
             // 
             // tb_SrcUname
             // 
-            this.tb_SrcUname.Location = new System.Drawing.Point(85, 64);
+            this.tb_SrcUname.Location = new System.Drawing.Point(85, 69);
             this.tb_SrcUname.Name = "tb_SrcUname";
-            this.tb_SrcUname.Size = new System.Drawing.Size(167, 21);
+            this.tb_SrcUname.Size = new System.Drawing.Size(167, 20);
             this.tb_SrcUname.TabIndex = 3;
+            this.tb_SrcUname.Text = "sa";
             // 
             // tb_SrcServer
             // 
-            this.tb_SrcServer.Location = new System.Drawing.Point(85, 18);
+            this.tb_SrcServer.Location = new System.Drawing.Point(85, 20);
             this.tb_SrcServer.Name = "tb_SrcServer";
-            this.tb_SrcServer.Size = new System.Drawing.Size(167, 21);
+            this.tb_SrcServer.Size = new System.Drawing.Size(167, 20);
             this.tb_SrcServer.TabIndex = 2;
-            this.tb_SrcServer.Text = "localhost\\MCSQL";
+            this.tb_SrcServer.Text = "192.168.81.130";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(16, 18);
+            this.label1.Location = new System.Drawing.Point(16, 20);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 6;
             this.label1.Text = "Server";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(16, 64);
+            this.label2.Location = new System.Drawing.Point(16, 69);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(29, 12);
+            this.label2.Size = new System.Drawing.Size(29, 13);
             this.label2.TabIndex = 7;
             this.label2.Text = "User";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(16, 88);
+            this.label3.Location = new System.Drawing.Point(16, 95);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(53, 12);
+            this.label3.Size = new System.Drawing.Size(53, 13);
             this.label3.TabIndex = 8;
             this.label3.Text = "Password";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(16, 137);
+            this.label4.Location = new System.Drawing.Point(16, 148);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(65, 12);
+            this.label4.Size = new System.Drawing.Size(62, 13);
             this.label4.TabIndex = 9;
             this.label4.Text = "Table/View";
             // 
             // cb_SrcWinAuth
             // 
             this.cb_SrcWinAuth.AutoSize = true;
-            this.cb_SrcWinAuth.Checked = true;
-            this.cb_SrcWinAuth.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cb_SrcWinAuth.Location = new System.Drawing.Point(85, 42);
+            this.cb_SrcWinAuth.Location = new System.Drawing.Point(85, 46);
             this.cb_SrcWinAuth.Name = "cb_SrcWinAuth";
-            this.cb_SrcWinAuth.Size = new System.Drawing.Size(156, 16);
+            this.cb_SrcWinAuth.Size = new System.Drawing.Size(141, 17);
             this.cb_SrcWinAuth.TabIndex = 10;
             this.cb_SrcWinAuth.Text = "Windows Authentication";
             this.cb_SrcWinAuth.UseVisualStyleBackColor = true;
@@ -333,9 +372,9 @@
             this.cb_SrcTab.AllowDrop = true;
             this.cb_SrcTab.Enabled = false;
             this.cb_SrcTab.FormattingEnabled = true;
-            this.cb_SrcTab.Location = new System.Drawing.Point(85, 137);
+            this.cb_SrcTab.Location = new System.Drawing.Point(85, 148);
             this.cb_SrcTab.Name = "cb_SrcTab";
-            this.cb_SrcTab.Size = new System.Drawing.Size(142, 20);
+            this.cb_SrcTab.Size = new System.Drawing.Size(142, 21);
             this.cb_SrcTab.TabIndex = 12;
             this.cb_SrcTab.UseWaitCursor = true;
             this.cb_SrcTab.DropDown += new System.EventHandler(this.cb_SrcTab_DropDown);
@@ -344,9 +383,9 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(17, 112);
+            this.label11.Location = new System.Drawing.Point(17, 121);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(53, 12);
+            this.label11.Size = new System.Drawing.Size(53, 13);
             this.label11.TabIndex = 14;
             this.label11.Text = "Database";
             // 
@@ -356,17 +395,17 @@
             this.cb_SrcDB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_SrcDB.Enabled = false;
             this.cb_SrcDB.FormattingEnabled = true;
-            this.cb_SrcDB.Location = new System.Drawing.Point(85, 112);
+            this.cb_SrcDB.Location = new System.Drawing.Point(85, 121);
             this.cb_SrcDB.Name = "cb_SrcDB";
-            this.cb_SrcDB.Size = new System.Drawing.Size(142, 20);
+            this.cb_SrcDB.Size = new System.Drawing.Size(142, 21);
             this.cb_SrcDB.TabIndex = 15;
             this.cb_SrcDB.UseWaitCursor = true;
             // 
             // bt_SrcRfs
             // 
-            this.bt_SrcRfs.Location = new System.Drawing.Point(233, 112);
+            this.bt_SrcRfs.Location = new System.Drawing.Point(233, 121);
             this.bt_SrcRfs.Name = "bt_SrcRfs";
-            this.bt_SrcRfs.Size = new System.Drawing.Size(19, 21);
+            this.bt_SrcRfs.Size = new System.Drawing.Size(19, 23);
             this.bt_SrcRfs.TabIndex = 16;
             this.bt_SrcRfs.UseVisualStyleBackColor = true;
             this.bt_SrcRfs.Click += new System.EventHandler(this.bt_SrcRfs_Click);
@@ -374,9 +413,9 @@
             // bt_SrcRfst
             // 
             this.bt_SrcRfst.Enabled = false;
-            this.bt_SrcRfst.Location = new System.Drawing.Point(233, 137);
+            this.bt_SrcRfst.Location = new System.Drawing.Point(233, 148);
             this.bt_SrcRfst.Name = "bt_SrcRfst";
-            this.bt_SrcRfst.Size = new System.Drawing.Size(19, 21);
+            this.bt_SrcRfst.Size = new System.Drawing.Size(19, 23);
             this.bt_SrcRfst.TabIndex = 16;
             this.bt_SrcRfst.UseVisualStyleBackColor = true;
             this.bt_SrcRfst.Click += new System.EventHandler(this.bt_SrcRfst_Click);
@@ -386,10 +425,10 @@
             this.tb_Conn.Controls.Add(this.tabPage1);
             this.tb_Conn.Controls.Add(this.tabPage2);
             this.tb_Conn.ItemSize = new System.Drawing.Size(142, 18);
-            this.tb_Conn.Location = new System.Drawing.Point(20, 6);
+            this.tb_Conn.Location = new System.Drawing.Point(20, 7);
             this.tb_Conn.Name = "tb_Conn";
             this.tb_Conn.SelectedIndex = 0;
-            this.tb_Conn.Size = new System.Drawing.Size(288, 224);
+            this.tb_Conn.Size = new System.Drawing.Size(288, 243);
             this.tb_Conn.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
             this.tb_Conn.TabIndex = 2;
             // 
@@ -413,25 +452,25 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(280, 198);
+            this.tabPage1.Size = new System.Drawing.Size(280, 217);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Source";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // tb_SrcFilter
             // 
-            this.tb_SrcFilter.Location = new System.Drawing.Point(85, 162);
+            this.tb_SrcFilter.Location = new System.Drawing.Point(85, 176);
             this.tb_SrcFilter.Multiline = true;
             this.tb_SrcFilter.Name = "tb_SrcFilter";
-            this.tb_SrcFilter.Size = new System.Drawing.Size(167, 19);
+            this.tb_SrcFilter.Size = new System.Drawing.Size(167, 20);
             this.tb_SrcFilter.TabIndex = 17;
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(16, 162);
+            this.label5.Location = new System.Drawing.Point(16, 176);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(41, 12);
+            this.label5.Size = new System.Drawing.Size(29, 13);
             this.label5.TabIndex = 9;
             this.label5.Text = "Filter";
             // 
@@ -455,78 +494,39 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(280, 198);
+            this.tabPage2.Size = new System.Drawing.Size(280, 217);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Target";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // tb_TrgFilter
             // 
-            this.tb_TrgFilter.Location = new System.Drawing.Point(85, 162);
+            this.tb_TrgFilter.Location = new System.Drawing.Point(85, 176);
             this.tb_TrgFilter.Multiline = true;
             this.tb_TrgFilter.Name = "tb_TrgFilter";
-            this.tb_TrgFilter.Size = new System.Drawing.Size(167, 19);
+            this.tb_TrgFilter.Size = new System.Drawing.Size(167, 20);
             this.tb_TrgFilter.TabIndex = 18;
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(16, 162);
+            this.label6.Location = new System.Drawing.Point(16, 176);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(41, 12);
+            this.label6.Size = new System.Drawing.Size(29, 13);
             this.label6.TabIndex = 9;
             this.label6.Text = "Filter";
             // 
-            // Selected
-            // 
-            this.Selected.DataPropertyName = "Selected";
-            this.Selected.HeaderText = "Selected";
-            this.Selected.Name = "Selected";
-            this.Selected.Width = 59;
-            // 
-            // SourceColumn
-            // 
-            this.SourceColumn.DataPropertyName = "SourceColumn";
-            this.SourceColumn.HeaderText = "SourceColumn";
-            this.SourceColumn.Name = "SourceColumn";
-            this.SourceColumn.ReadOnly = true;
-            this.SourceColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.SourceColumn.Width = 83;
-            // 
-            // TargetColumn
-            // 
-            this.TargetColumn.DataPropertyName = "TargetColumn";
-            this.TargetColumn.HeaderText = "TargetColumn";
-            this.TargetColumn.Name = "TargetColumn";
-            this.TargetColumn.Width = 83;
-            // 
-            // SelectedKey
-            // 
-            this.SelectedKey.DataPropertyName = "Key";
-            this.SelectedKey.HeaderText = "Is Key?";
-            this.SelectedKey.Name = "SelectedKey";
-            this.SelectedKey.Width = 53;
-            // 
-            // SourceColumnName
-            // 
-            this.SourceColumnName.HeaderText = "SourceColumnName";
-            this.SourceColumnName.Name = "SourceColumnName";
-            this.SourceColumnName.ReadOnly = true;
-            this.SourceColumnName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.SourceColumnName.Visible = false;
-            this.SourceColumnName.Width = 107;
-            // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(892, 529);
+            this.ClientSize = new System.Drawing.Size(892, 573);
             this.Controls.Add(this.tb_Conn);
             this.Controls.Add(this.cb_DiffCols);
             this.Controls.Add(this.bt_Compare);
             this.Controls.Add(this.dgv_Mappings);
             this.Controls.Add(this.dataGridView1);
-            this.MinimumSize = new System.Drawing.Size(900, 556);
+            this.MinimumSize = new System.Drawing.Size(900, 599);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "DataCompare";

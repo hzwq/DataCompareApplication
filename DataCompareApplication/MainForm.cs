@@ -330,8 +330,8 @@ namespace WindowsFormsApplication1
                 if ((bool)row.Cells[3].Value == true)
                 {
                     lstKeysIndex.Add(selectedCount);
-                    sqlSrcOrder += srcCol + ", ";
-                    sqlTrgOrder += trgCol + ", ";
+                    sqlSrcOrder += (selectedCount + 1) + ", ";
+                    sqlTrgOrder += (selectedCount + 1) + ", ";
                 }
                 selectedCount++;
             }
@@ -380,6 +380,28 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
+        }
+
+        private void DoColumnsMapping()
+        {
+            dgv_Mappings.Rows.Clear();
+
+            string sqlSrc = String.Format(RETRIEVE_COLUMNS_SQL, cb_SrcTab.SelectedValue);
+            string sqlTrg = String.Format(RETRIEVE_COLUMNS_SQL, cb_TrgTab.SelectedValue);
+
+            DataSet ds = new DataSet();
+
+            ExecuteSQL(sqlSrc, ConnType.Source, dsGlobal, "SrcCols");
+            ExecuteSQL(sqlTrg, ConnType.Target, dsGlobal, "TrgCols");
+
+            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DataSource = dsGlobal.Tables["TrgCols"];
+            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DisplayMember = "name";
+            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).ValueMember = "col";
+
+            MappingColumns();
+
+            SetLayout(ConnType.Other, 5);
+
         }
 
         private void Reset()
@@ -704,7 +726,7 @@ namespace WindowsFormsApplication1
 
         private void bt_Compare_Click(object sender, EventArgs e)
         {
-            this.Cursor = Cursors.WaitCursor;
+            //this.Cursor = Cursors.WaitCursor;
 
             if (!ValidateColumnMapping())
             {
@@ -746,22 +768,7 @@ namespace WindowsFormsApplication1
             SqlDataReader drSource = GetDataReader(sqlSource, ConnType.Source);
             SqlDataReader drTarget = GetDataReader(sqlTarget, ConnType.Target);
 
-            foreach (DataGridViewRow row in dgv_Mappings.Rows)
-            {
-                if ((bool)row.Cells[0].Value != true)
-                    continue;
-
-                dtResult.Columns.Add("src." + ((string)row.Cells[1].Value).Split('[')[0].Trim(), dtSource.Columns[((string)row.Cells[1].Value).Split('[')[0].Trim()].DataType);
-                columnCount++;
-            }
-
-            foreach (DataGridViewRow row in dgv_Mappings.Rows)
-            {
-                if ((bool)row.Cells[0].Value != true)
-                    continue;
-
-                dtResult.Columns.Add("trg." + ((string)row.Cells[2].Value).Split('[')[0].Trim(), dtTarget.Columns[((string)row.Cells[2].Value).Split('[')[0].Trim()].DataType);
-            }
+            columnCount = InitResultTable(dtResult);
 
             bool isNotSrcEof = true;
             bool isNotTrgEof = true;
@@ -836,15 +843,45 @@ namespace WindowsFormsApplication1
                 diffColIndex[i + columnCount] = true;
             }
 
-            dataGridView1.DataSource = null;
             dataGridView1.DataSource = dtResult;
-            dataGridView1.Refresh();
+
+            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+            {
+                dataGridView1.Columns[i].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+
+            //dataGridView1.Refresh();
             HighlightCells();
 
-            this.Cursor = Cursors.Default;
+            //this.Cursor = Cursors.Default;
             SetLayout(ConnType.Other, 6);
 
         }
+
+        private int InitResultTable(DataTable dtResult)
+        {
+            int columnCount = 0;
+
+            foreach (DataGridViewRow row in dgv_Mappings.Rows)
+            {
+                if ((bool)row.Cells[0].Value != true)
+                    continue;
+
+                dtResult.Columns.Add("src." + ((string)row.Cells[1].Value).Split('[')[0].Trim(), dtSource.Columns[((string)row.Cells[1].Value).Split('[')[0].Trim()].DataType);
+                columnCount++;
+            }
+
+            foreach (DataGridViewRow row in dgv_Mappings.Rows)
+            {
+                if ((bool)row.Cells[0].Value != true)
+                    continue;
+
+                dtResult.Columns.Add("trg." + ((string)row.Cells[2].Value).Split('[')[0].Trim(), dtTarget.Columns[((string)row.Cells[2].Value).Split('[')[0].Trim()].DataType);
+            }
+
+            return columnCount;
+        }
+
 
         private bool ValidateColumnMapping()
         {
@@ -917,8 +954,6 @@ namespace WindowsFormsApplication1
             dataGridView1.Height = this.Height - 333;
         }
 
-        #endregion
-
         private void cb_SrcTab_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (trgStatus == 2 && srcStatus == 2)
@@ -935,27 +970,8 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void DoColumnsMapping()
-        {
-            dgv_Mappings.Rows.Clear();
+        #endregion
 
-            string sqlSrc = String.Format(RETRIEVE_COLUMNS_SQL, cb_SrcTab.SelectedValue);
-            string sqlTrg = String.Format(RETRIEVE_COLUMNS_SQL, cb_TrgTab.SelectedValue);
-
-            DataSet ds = new DataSet();
-
-            ExecuteSQL(sqlSrc, ConnType.Source, dsGlobal, "SrcCols");
-            ExecuteSQL(sqlTrg, ConnType.Target, dsGlobal, "TrgCols");
-
-            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DataSource = dsGlobal.Tables["TrgCols"];
-            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).DisplayMember = "name";
-            ((DataGridViewComboBoxColumn)dgv_Mappings.Columns[2]).ValueMember = "col";
-
-            MappingColumns();
-
-            SetLayout(ConnType.Other, 5);
-
-        }
         
     }
 }
