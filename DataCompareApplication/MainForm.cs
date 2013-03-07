@@ -46,9 +46,15 @@ namespace WindowsFormsApplication1
         bool[] diffColIndex = null;
         bool allDiff = false;
 
+        List<string> srcCols = new List<string>();
+        List<string> trgCols = new List<string>();
+        int maxKeyIndex = 0;
+
         List<Control> srcControls = new List<Control>();
         List<Control> trgControls = new List<Control>();
         List<Control> compControls = new List<Control>();
+
+        List<bool[]> difFlag = null;
 
         int srcStatus = 0;
         int trgStatus = 0;
@@ -172,7 +178,7 @@ namespace WindowsFormsApplication1
 
         #endregion
 
-        #region DataSet
+        #region Function
 
         private int getTrgRowCount()
         {
@@ -188,31 +194,32 @@ namespace WindowsFormsApplication1
             return (int)result.Rows[0][0];
         }
 
-        private void InsertRow(SqlDataReader left, SqlDataReader right)
+        private void InsertRow(SqlDataReader left, SqlDataReader right, bool[] diffCol)
         {
             DataRow newRow = dtResult.NewRow();
             for (int i = 0; i < columnCount; i++)
             {
                 newRow[i] = (left == null) ? DBNull.Value : left[i];
-                if (left == null)
-                    diffColIndex[i] = true;
             }
             for (int i = 0; i < columnCount; i++)
             {
                 newRow[i + columnCount] = (right == null) ? DBNull.Value : right[i];
-                if (right == null)
-                    diffColIndex[i + columnCount] = true;
             }
+
+            difFlag.Add(diffCol);
             dtResult.Rows.Add(newRow);
         }
 
         private void DataRowCompare(SqlDataReader left, SqlDataReader right)
         {
             bool diff = false;
+            bool[] diffCol = new bool[columnCount + 2];
 
             if (left == null || right == null)
             {
                 diff = true;
+                diffCol[(left == null) ? columnCount : columnCount + 1] = true;
+
                 if (!allDiff)
                 {
                     ArrayList.Repeat(true, diffColIndex.Length).CopyTo(diffColIndex);
@@ -226,15 +233,20 @@ namespace WindowsFormsApplication1
                     if (string.Compare(left[i].ToString(), right[i].ToString()) != 0)
                     {
                         diff = true;
-                        diffColIndex[i] = true;
-                        diffColIndex[i + columnCount] = true;
+                        diffCol[i] = true;
+
+                        if (!allDiff)
+                        {
+                            diffColIndex[i] = true;
+                            diffColIndex[i + columnCount] = true;
+                        }
                     }
                 }
             }
 
             if (diff)
             {
-                InsertRow(left, right);
+                InsertRow(left, right, diffCol);
             }
         }
 
@@ -281,7 +293,7 @@ namespace WindowsFormsApplication1
 
         }
 
-        private int CompareKeys(SqlDataReader drLeft, SqlDataReader drRight, int[] keyIndex)
+        private int CompareKeys(SqlDataReader drLeft, SqlDataReader drRight)
         {
             if (drLeft == null)
                 return 1;
@@ -291,7 +303,7 @@ namespace WindowsFormsApplication1
 
             int compare = 0;
 
-            foreach (int i in keyIndex)
+            for (int i = 0; i < maxKeyIndex; i++)
             {
                 compare = string.Compare(drLeft[i].ToString(), drRight[i].ToString());
                 if (compare != 0)
@@ -301,82 +313,103 @@ namespace WindowsFormsApplication1
             return compare;
         }
 
-        private void BuildSql(ref string sqlSrc, ref string sqlTrg, ref int[] keyIndex, ref string sqlColSrc, ref string sqlColTrg)
+        private void CollectColumns()
         {
-            List<int> lstKeysIndex = new List<int>();
-            sqlSrc = "SELECT ";
-            sqlTrg = "SELECT ";
-            string sqlSrcOrder = " ORDER BY ";
-            string sqlTrgOrder = " ORDER BY ";
-            string srcCol = "";
-            string trgCol = "";
-
-            int selectedCount = 0;
+            int keyIndex = 0;
 
             foreach (DataGridViewRow row in dgv_Mappings.Rows)
             {
                 if ((bool)row.Cells[0].Value != true)
                     continue;
 
-                //Get selected source column name and target column name.
-                srcCol = ((string)row.Cells[4].Value).Trim();
-                trgCol = ((string)row.Cells[2].Value).Trim();
+                columnCount++;
 
-                //Prepare for the select SQL.
-                sqlSrc += srcCol + ", ";
-                sqlTrg += trgCol + ", ";
-
-                //Prepare for the order by SQL.
                 if ((bool)row.Cells[3].Value == true)
                 {
-                    lstKeysIndex.Add(selectedCount);
-                    sqlSrcOrder += (selectedCount + 1) + ", ";
-                    sqlTrgOrder += (selectedCount + 1) + ", ";
+                    srcCols.Insert(keyIndex, ((string)row.Cells[4].Value).Trim());
+                    trgCols.Insert(keyIndex, ((string)row.Cells[2].Value).Trim());
+                    keyIndex++;
+                    continue;
                 }
-                selectedCount++;
+
+                srcCols.Add(((string)row.Cells[4].Value).Trim());
+                trgCols.Add(((string)row.Cells[2].Value).Trim());
             }
+
+            maxKeyIndex = keyIndex;
+        }
+
+        private void BuildSql(ref string sqlSrc, ref string sqlTrg)
+        {
+            StringBuilder sbSqlSrc = new StringBuilder("SELECT ");
+            StringBuilder sbSqlTrg = new StringBuilder("SELECT ");
+
+            StringBuilder sbOrder = new StringBuilder(" ORDER BY ");
+
+            foreach (string column in srcCols)
+            {
+                sbSqlSrc.Append(column + ", ");
+            }
+
+            foreach (string column in trgCols)
+            {
+                sbSqlTrg.Append(column + ", ");
+            }
+
+            for (int i = 1; i <= maxKeyIndex; i++ )
+            {
+                sbOrder.Append(i.ToString() + ", ");
+            }
+
+            sqlSrc = sbSqlSrc.ToString();
+            sqlTrg = sbSqlTrg.ToString();
 
             sqlSrc = sqlSrc.Remove(sqlSrc.Length - 2);
             sqlTrg = sqlTrg.Remove(sqlTrg.Length - 2);
-            sqlSrcOrder = sqlSrcOrder.Remove(sqlSrcOrder.Length - 2);
-            sqlTrgOrder = sqlTrgOrder.Remove(sqlTrgOrder.Length - 2);
+
+            string order = sbOrder.ToString();
+            order = order.Remove(order.Length - 2);
 
             sqlSrc += " FROM " + cb_SrcTab.SelectedValue;
             sqlTrg += " FROM " + cb_TrgTab.SelectedValue;
 
-            sqlColSrc = sqlSrc + " WHERE 1=2";
-            sqlColTrg = sqlTrg + " WHERE 1=2";
+            sqlSrc += " WHERE " + (tb_SrcFilter.Text.Trim().Length == 0 ? "1=1" : tb_SrcFilter.Text.Trim()) + order;
+            sqlTrg += " WHERE " + (tb_TrgFilter.Text.Trim().Length == 0 ? "1=1" : tb_TrgFilter.Text.Trim()) + order;
 
-            sqlSrc += " WHERE " + (tb_SrcFilter.Text.Trim().Length == 0 ? "1=1" : tb_SrcFilter.Text.Trim()) + sqlSrcOrder;
-            sqlTrg += " WHERE " + (tb_TrgFilter.Text.Trim().Length == 0 ? "1=1" : tb_TrgFilter.Text.Trim()) + sqlTrgOrder;
-
-            keyIndex = lstKeysIndex.ToArray();
         }
 
         private void HighlightCells()
         {
-            DataGridViewCellStyle highlight = new DataGridViewCellStyle();
-            highlight.ForeColor = Color.Red;
+            int rowCount = dataGridView1.RowCount;
+            DataGridViewRow row = null;
 
-            int colCount = dataGridView1.ColumnCount;
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            for (int rowno = 0; rowno < rowCount; rowno++ )
             {
-                for (int i = 0; i < colCount / 2; i++)
+                row = dataGridView1.Rows[rowno];
+                for (int i = 0; i < columnCount; i++)
                 {
-                    if (row.Cells[0].Value == null)
+                    if (i < maxKeyIndex)
+                    {
+                        row.Cells[i].Style.BackColor = Color.LightGray;
+                        row.Cells[columnCount + i].Style.BackColor = Color.LightGray;
+                        continue;
+                    }
+
+                    if (difFlag[rowno][columnCount])
                     {
                         row.Cells[i].Style.BackColor = Color.LightGreen;
                         continue;
                     }
-                    if (row.Cells[colCount / 2].Value == null)
+                    if (difFlag[rowno][columnCount + 1])
                     {
-                        row.Cells[colCount / 2 + i].Style.BackColor = Color.LightGreen;
+                        row.Cells[columnCount + i].Style.BackColor = Color.LightGreen;
                         continue;
                     }
-                    if ((row.Cells[i].Value == null && row.Cells[colCount / 2 + i].Value != null) || (row.Cells[i].Value != null && !row.Cells[i].Value.Equals(row.Cells[colCount / 2 + i].Value)))
+                    //if ((row.Cells[i].Value == null && row.Cells[colCount / 2 + i].Value != null) || (row.Cells[i].Value != null && !row.Cells[i].Value.Equals(row.Cells[colCount / 2 + i].Value)))
+                    if (difFlag[rowno][i])
                     {
                         row.Cells[i].Style.BackColor = Color.LightPink;
-                        row.Cells[colCount / 2 + i].Style.BackColor = Color.LightPink;
+                        row.Cells[columnCount + i].Style.BackColor = Color.LightPink;
                     }
                 }
             }
@@ -404,11 +437,64 @@ namespace WindowsFormsApplication1
 
         }
 
+        private void AddColumn(DataTable dtResult, string columnName, System.Type type)
+        {
+            int i = 0;
+
+            while (dtResult.Columns.Contains(columnName))
+            {
+                columnName += (++i).ToString();
+            }
+
+            dtResult.Columns.Add(columnName, type);
+        }
+
+        private void InitResultTable(DataTable dtResult)
+        {
+            foreach (string column in srcCols)
+            {
+                AddColumn(dtResult, "src." + column, System.Type.GetType("System.String"));
+            }
+
+            foreach (string column in trgCols)
+            {
+
+                AddColumn(dtResult, "trg." + column, System.Type.GetType("System.String"));
+            }
+        }
+
+        private bool ValidateColumnMapping()
+        {
+            int keyCount = 0;
+            foreach (DataGridViewRow row in dgv_Mappings.Rows)
+            {
+                if ((bool)row.Cells[3].Value == true && (bool)row.Cells[0].Value == false)
+                    return false;
+
+                if ((bool)row.Cells[3].Value == true)
+                {
+                    if ((bool)row.Cells[0].Value == false)
+                        return false;
+                    keyCount++;
+                }
+
+                if ((bool)row.Cells[0].Value == true &&
+                    (row.Cells[1].Value.ToString().Trim() == "" || row.Cells[2].Value.ToString().Trim() == ""))
+                    return false;
+            }
+
+            if (keyCount == 0)
+                return false;
+
+            return true;
+        }
+
         private void Reset()
         {
             columnCount = 0;
             diffColIndex = null;
             allDiff = false;
+            difFlag = new List<bool[]>();
             //dsGlobal.Tables.Clear();
             cb_DiffCols.Checked = false;
         }
@@ -726,7 +812,6 @@ namespace WindowsFormsApplication1
 
         private void bt_Compare_Click(object sender, EventArgs e)
         {
-            //this.Cursor = Cursors.WaitCursor;
 
             if (!ValidateColumnMapping())
             {
@@ -741,12 +826,12 @@ namespace WindowsFormsApplication1
             string sqlSource = "";
             string sqlTarget = "";
 
-            string sqlColSource = "";
-            string sqlColTarget = "";
+            srcCols = new List<string>();
+            trgCols = new List<string>();
 
-            int[] keyIndex = null;
+            CollectColumns();
 
-            BuildSql(ref sqlSource, ref sqlTarget, ref keyIndex, ref sqlColSource, ref sqlColTarget);
+            BuildSql(ref sqlSource, ref sqlTarget);
 
             int srcRowCount = 0;
             int trgRowCount = 0;
@@ -762,13 +847,13 @@ namespace WindowsFormsApplication1
                 return;
             }
 
-            DataTable dtSource = ExecuteSQL(sqlColSource, ConnType.Source);
-            DataTable dtTarget = ExecuteSQL(sqlColTarget, ConnType.Target);
+            //DataTable dtSource = ExecuteSQL(sqlColSource, ConnType.Source);
+            //DataTable dtTarget = ExecuteSQL(sqlColTarget, ConnType.Target);
 
             SqlDataReader drSource = GetDataReader(sqlSource, ConnType.Source);
             SqlDataReader drTarget = GetDataReader(sqlTarget, ConnType.Target);
 
-            columnCount = InitResultTable(dtResult);
+            InitResultTable(dtResult);
 
             bool isNotSrcEof = true;
             bool isNotTrgEof = true;
@@ -794,7 +879,7 @@ namespace WindowsFormsApplication1
             while (isNotSrcEof || isNotTrgEof)
             {
 
-                int flag = CompareKeys(isNotSrcEof ? drSource : null, isNotTrgEof ? drTarget : null, keyIndex);
+                int flag = CompareKeys(isNotSrcEof ? drSource : null, isNotTrgEof ? drTarget : null);
 
                 DataRowCompare((flag <= 0) ? drSource : null, (flag >= 0) ? drTarget : null);
 
@@ -837,12 +922,13 @@ namespace WindowsFormsApplication1
             drTarget.Close();
 
             //Set key column always visiable
-            foreach (int i in keyIndex)
+            for (int i = 0; i < maxKeyIndex; i++)
             {
                 diffColIndex[i] = true;
                 diffColIndex[i + columnCount] = true;
             }
 
+            dataGridView1.DataSource = null;
             dataGridView1.DataSource = dtResult;
 
             for (int i = 0; i < dataGridView1.ColumnCount; i++)
@@ -856,56 +942,6 @@ namespace WindowsFormsApplication1
             //this.Cursor = Cursors.Default;
             SetLayout(ConnType.Other, 6);
 
-        }
-
-        private int InitResultTable(DataTable dtResult)
-        {
-            int columnCount = 0;
-
-            foreach (DataGridViewRow row in dgv_Mappings.Rows)
-            {
-                if ((bool)row.Cells[0].Value != true)
-                    continue;
-
-                dtResult.Columns.Add("src." + ((string)row.Cells[1].Value).Split('[')[0].Trim(), dtSource.Columns[((string)row.Cells[1].Value).Split('[')[0].Trim()].DataType);
-                columnCount++;
-            }
-
-            foreach (DataGridViewRow row in dgv_Mappings.Rows)
-            {
-                if ((bool)row.Cells[0].Value != true)
-                    continue;
-
-                dtResult.Columns.Add("trg." + ((string)row.Cells[2].Value).Split('[')[0].Trim(), dtTarget.Columns[((string)row.Cells[2].Value).Split('[')[0].Trim()].DataType);
-            }
-
-            return columnCount;
-        }
-
-
-        private bool ValidateColumnMapping()
-        {
-            int keyCount = 0;
-            foreach (DataGridViewRow row in dgv_Mappings.Rows)
-            {
-                if ((bool)row.Cells[3].Value == true && (bool)row.Cells[0].Value == false)
-                    return false;
-
-                if ((bool)row.Cells[3].Value == true){
-                    if ((bool)row.Cells[0].Value == false)
-                        return false;
-                    keyCount++;
-                }
-
-                if ((bool)row.Cells[0].Value == true &&
-                    (row.Cells[1].Value.ToString().Trim() == "" || row.Cells[2].Value.ToString().Trim() == ""))
-                    return false;
-            }
-
-            if (keyCount == 0)
-                return false;
-
-            return true;
         }
 
         private void cb_DiffCols_CheckedChanged(object sender, EventArgs e)
@@ -937,6 +973,22 @@ namespace WindowsFormsApplication1
             AutoSizeComboBoxItem(sender);
         }
 
+        private void cb_SrcTab_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (trgStatus == 2 && srcStatus == 2)
+            {
+                DoColumnsMapping();
+            }
+        }
+
+        private void cb_TrgTab_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (srcStatus == 2 && trgStatus == 2)
+            {
+                DoColumnsMapping();
+            }
+        }
+
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             CloseConnections();
@@ -954,24 +1006,29 @@ namespace WindowsFormsApplication1
             dataGridView1.Height = this.Height - 333;
         }
 
-        private void cb_SrcTab_SelectedIndexChanged(object sender, EventArgs e)
+        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (trgStatus == 2 && srcStatus == 2)
-            {
-                DoColumnsMapping();
-            }
-        }
+            DataGridView dgv = ((DataGridView)sender);
+            int rowno = e.RowIndex;
+            int colno = e.ColumnIndex;
+            int totalCol = dgv.ColumnCount;
 
-        private void cb_TrgTab_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (srcStatus == 2 && trgStatus == 2)
+            int col = 0;
+
+            if (colno >= totalCol / 2)
             {
-                DoColumnsMapping();
+                col = colno - totalCol / 2;
             }
+            else
+            {
+                col = colno;
+                colno = colno + totalCol / 2;
+            }
+
+            MessageBox.Show("Source: [" + dgv.Rows[rowno].Cells[col].Value.ToString() + "]\r\nTarget: [" + dgv.Rows[rowno].Cells[colno].Value.ToString() + "]", "Value", MessageBoxButtons.OK);
+
         }
 
         #endregion
-
-        
     }
 }
