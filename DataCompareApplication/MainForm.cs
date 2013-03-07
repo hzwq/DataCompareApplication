@@ -726,7 +726,7 @@ namespace WindowsFormsApplication1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -749,7 +749,7 @@ namespace WindowsFormsApplication1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
         }
@@ -770,7 +770,7 @@ namespace WindowsFormsApplication1
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
             }
@@ -798,7 +798,7 @@ namespace WindowsFormsApplication1
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
                 
@@ -815,7 +815,7 @@ namespace WindowsFormsApplication1
 
             if (!ValidateColumnMapping())
             {
-                MessageBox.Show("Invalid or incompleted column mapping.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Invalid or incompleted column mapping.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -833,6 +833,11 @@ namespace WindowsFormsApplication1
 
             BuildSql(ref sqlSource, ref sqlTarget);
 
+            ProgressBarFrom fm = new ProgressBarFrom();
+
+            fm.Show(this);
+            fm.Refresh();
+
             int srcRowCount = 0;
             int trgRowCount = 0;
 
@@ -843,15 +848,19 @@ namespace WindowsFormsApplication1
             }
             catch (SqlException ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);              
+                fm.Close();
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);              
                 return;
             }
 
             //DataTable dtSource = ExecuteSQL(sqlColSource, ConnType.Source);
             //DataTable dtTarget = ExecuteSQL(sqlColTarget, ConnType.Target);
+            fm.SetMaximum(srcRowCount, trgRowCount);
 
             SqlDataReader drSource = GetDataReader(sqlSource, ConnType.Source);
             SqlDataReader drTarget = GetDataReader(sqlTarget, ConnType.Target);
+
+            fm.StartCompare();
 
             InitResultTable(dtResult);
 
@@ -859,10 +868,6 @@ namespace WindowsFormsApplication1
             bool isNotTrgEof = true;
 
             diffColIndex = new bool[dtResult.Columns.Count];
-
-            ProgressBarFrom fm = new ProgressBarFrom(0, srcRowCount, 0, trgRowCount);
-
-            fm.Show(this);
 
             dtResult.Clear();
             dtResult.BeginLoadData();

@@ -41,35 +41,35 @@
             // 
             // pb_Processed
             // 
-            this.pb_Processed.Location = new System.Drawing.Point(88, 25);
+            this.pb_Processed.Location = new System.Drawing.Point(97, 23);
             this.pb_Processed.Name = "pb_Processed";
-            this.pb_Processed.Size = new System.Drawing.Size(366, 21);
+            this.pb_Processed.Size = new System.Drawing.Size(357, 19);
             this.pb_Processed.TabIndex = 0;
             this.pb_Processed.UseWaitCursor = true;
             // 
             // lb_Percentage
             // 
             this.lb_Percentage.AutoSize = true;
-            this.lb_Percentage.Location = new System.Drawing.Point(248, 9);
+            this.lb_Percentage.Location = new System.Drawing.Point(262, 8);
             this.lb_Percentage.Name = "lb_Percentage";
-            this.lb_Percentage.Size = new System.Drawing.Size(21, 13);
+            this.lb_Percentage.Size = new System.Drawing.Size(17, 12);
             this.lb_Percentage.TabIndex = 1;
             this.lb_Percentage.Text = "0%";
             // 
             // lb_Count
             // 
             this.lb_Count.AutoSize = true;
-            this.lb_Count.Location = new System.Drawing.Point(373, 9);
+            this.lb_Count.Location = new System.Drawing.Point(387, 8);
             this.lb_Count.Name = "lb_Count";
-            this.lb_Count.Size = new System.Drawing.Size(54, 13);
+            this.lb_Count.Size = new System.Drawing.Size(23, 12);
             this.lb_Count.TabIndex = 2;
-            this.lb_Count.Text = "0/100000";
+            this.lb_Count.Text = "0/0";
             // 
             // bt_Finish
             // 
-            this.bt_Finish.Location = new System.Drawing.Point(353, 106);
+            this.bt_Finish.Location = new System.Drawing.Point(353, 98);
             this.bt_Finish.Name = "bt_Finish";
-            this.bt_Finish.Size = new System.Drawing.Size(101, 23);
+            this.bt_Finish.Size = new System.Drawing.Size(101, 21);
             this.bt_Finish.TabIndex = 3;
             this.bt_Finish.Text = "Cancel";
             this.bt_Finish.UseVisualStyleBackColor = true;
@@ -78,52 +78,52 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 25);
+            this.label1.Location = new System.Drawing.Point(8, 23);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(74, 13);
+            this.label1.Size = new System.Drawing.Size(83, 12);
             this.label1.TabIndex = 4;
             this.label1.Text = "Source Table:";
             // 
             // pb_ProcessedTrg
             // 
-            this.pb_ProcessedTrg.Location = new System.Drawing.Point(88, 67);
+            this.pb_ProcessedTrg.Location = new System.Drawing.Point(97, 62);
             this.pb_ProcessedTrg.Name = "pb_ProcessedTrg";
-            this.pb_ProcessedTrg.Size = new System.Drawing.Size(366, 21);
+            this.pb_ProcessedTrg.Size = new System.Drawing.Size(357, 19);
             this.pb_ProcessedTrg.TabIndex = 0;
             this.pb_ProcessedTrg.UseWaitCursor = true;
             // 
             // lb_PercentageTrg
             // 
             this.lb_PercentageTrg.AutoSize = true;
-            this.lb_PercentageTrg.Location = new System.Drawing.Point(248, 51);
+            this.lb_PercentageTrg.Location = new System.Drawing.Point(262, 47);
             this.lb_PercentageTrg.Name = "lb_PercentageTrg";
-            this.lb_PercentageTrg.Size = new System.Drawing.Size(21, 13);
+            this.lb_PercentageTrg.Size = new System.Drawing.Size(17, 12);
             this.lb_PercentageTrg.TabIndex = 1;
             this.lb_PercentageTrg.Text = "0%";
             // 
             // lb_CountTrg
             // 
             this.lb_CountTrg.AutoSize = true;
-            this.lb_CountTrg.Location = new System.Drawing.Point(373, 51);
+            this.lb_CountTrg.Location = new System.Drawing.Point(387, 47);
             this.lb_CountTrg.Name = "lb_CountTrg";
-            this.lb_CountTrg.Size = new System.Drawing.Size(54, 13);
+            this.lb_CountTrg.Size = new System.Drawing.Size(23, 12);
             this.lb_CountTrg.TabIndex = 2;
-            this.lb_CountTrg.Text = "0/100000";
+            this.lb_CountTrg.Text = "0/0";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(8, 67);
+            this.label4.Location = new System.Drawing.Point(8, 62);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(71, 13);
+            this.label4.Size = new System.Drawing.Size(83, 12);
             this.label4.TabIndex = 4;
             this.label4.Text = "Target Table:";
             // 
             // ProgressBarFrom
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(475, 141);
+            this.ClientSize = new System.Drawing.Size(475, 130);
             this.ControlBox = false;
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label1);
